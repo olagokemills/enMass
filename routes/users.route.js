@@ -16,7 +16,10 @@ module.exports = (app) => {
     //  app.delete('/api/user/remove/:id', verify, users.deleteUser);
     // //Update User
     app.put('/api/user/update/:userId', verify, users.updateUser);
-
+    //Verify user
     app.get('/api/Verification/:token', users.VerifyUser)
-
+    //Reset Password
+    app.post('/api/ResetPasswordLink', users.GetResetLink)
+    //Replace Password
+    app.post('/api/ChangePassword/:token', users.ChangePassword)
 }

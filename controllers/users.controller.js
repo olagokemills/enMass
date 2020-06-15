@@ -217,7 +217,7 @@ exports.VerifyUser = async(req, res, next) => {
       catch(err){
         return res.status(500).json({
             message: "Something went wrong",
-              })
+         })
       }
    }
 
@@ -227,22 +227,22 @@ exports.VerifyUser = async(req, res, next) => {
         return res.status(400).send({ message: 'Email Required for this!' })
         }
         try{
-            const user = User.findOne({
+            const user =  await User.findOne({
                 email: req.body.email
             })
             if(!user){
                 return res.status(400).send({message: "No account Match, please try again!"}).end()
               }
-              const verification =  resetLink(user)
-           return res.status(201).send({message:"Password Reset Link Successfully sent!"})
+            const verification =  resetLink(user)
+           return res.status(200).send({message:"Password Reset Link Successfully sent!"})
         }
         catch{
-            return res.status(500).send('User exists or something is wrong')
+            return res.status(500).send('User Does not exists or something is wrong')
         }
    }
 
-   function resetLink(userData){
-    let emailToken = newToken(userData)
+   function resetLink(userData){   
+    const emailToken = newToken(userData);
     let url = `http://localhost:8080/api/ResetPassword/${emailToken}`;
     //credentials
     let transporter = nodemailer.createTransport({
@@ -258,14 +258,50 @@ exports.VerifyUser = async(req, res, next) => {
     let mailOptions = {
         from: 'olagokemills@gmail.com',
         to: userData.email,
-        subject: 'Verify your account',
-        html: `Follow this Link to verify your account :  <a href="${url}">${url}</a>`
+        subject: 'Reset your Password',
+        html: `Follow this Link to reset your account :  <a href="${url}">${url}</a>`
     };
     transporter.sendMail(mailOptions, function(err, data){
         if(err){
-            res.status(500).end()
+         res.status(500).end()
         }else if(data){
          next()
         }
     })      
+}
+
+exports.ChangePassword = async(req,res, next)=>{
+    let token = req.params.token
+    jwt.verify(token, config.secret, (err) => {
+      if(err){
+       res.sendStatus(403).end();
+        } 
+     });
+      const decoded = jwt.decode(token)  
+      try{
+        const user = await User.find(
+            {
+                email: decoded.email
+            }
+        )
+        if(!user)
+        {
+          res.status(404).send({ message:"User not Found"}).end()
+        }
+        const updatedUser = await User.findOneAndUpdate(
+            {
+              _id: req.body.userId
+            },
+            req.body,
+             { new: true}
+          )
+             .lean()
+             .exec()
+       return res.status(200).json({message: "Password Changed!"})
+    }
+    catch(err){
+      return res.status(500).json({
+          message: "Something went wrong",
+       })
+    }
 }
