@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
 
 require('./routes/index.js')(app);
 //db connect
-mongoose.connect(config.db, { useNewUrlParser: true, useUnifiedTopology: true}, (res) =>
+mongoose.connect(config.dbUrl, { useNewUrlParser: true, useUnifiedTopology: true}, (res) =>
         console.log(res)
 )
 
